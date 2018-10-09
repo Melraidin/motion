@@ -6,6 +6,8 @@
  *    See also the file 'COPYING'.
  *
  */
+#include <sys/socket.h>
+#include <sys/un.h>
 #include "translate.h"
 #include "motion.h"
 #include "ffmpeg.h"
@@ -3206,6 +3208,9 @@ static void motion_startup(int daemonize, int argc, char *argv[])
     set_log_level(cnt_list[0]->log_level);
     set_log_type(cnt_list[0]->log_type);
 
+    if (cnt_list[0]->conf.socket_path) {
+        start_socket_server(cnt_list[0]);
+    }
 
     if (daemonize) {
         /*
@@ -3231,6 +3236,65 @@ static void motion_startup(int daemonize, int argc, char *argv[])
 
     vid_mutex_init();
 
+}
+
+void start_socket_server(struct context *cnt) {
+    char err[512] = "";
+
+    int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (fd == -1) {
+        strerror_r(errno, err, 512);
+        MOTION_LOG(
+        ALR, TYPE_EVENTS, NO_ERRNO,
+        _("Failed to open socket server: %s"),
+        err);
+        return;
+    }
+
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, cnt->conf.socket_path, sizeof(addr.sun_path)-1);
+    unlink(cnt->conf.socket_path);
+    if (bind(fd, (struct sockaddr*)&addr, sizeof(addr))) {
+        strerror_r(errno, err, 512);
+        MOTION_LOG(
+            ALR, TYPE_EVENTS, NO_ERRNO,
+            _("Failed to open bind socket server at path %s: %s"),
+            cnt->conf.socket_path,
+            err);
+        return;
+    }
+
+    MOTION_LOG(
+        INF, TYPE_EVENTS, NO_ERRNO,
+        _("Bound socket server at path %s."),
+        cnt->conf.socket_path);
+
+    if (listen(fd, 5)) {
+        strerror_r(errno, err, 512);
+        MOTION_LOG(
+            ALR, TYPE_EVENTS, NO_ERRNO,
+            _("Failed to listen to socket at path %s: %s"),
+            cnt->conf.socket_path,
+            err);
+        return;
+    }
+
+    struct sockaddr_un client_address;
+    socklen_t client_address_length = sizeof(client_address);
+    int client_fd = accept(fd, (struct sockaddr*)&client_address, &client_address_length);
+    if (client_fd < 0) {
+        strerror_r(errno, err, 512);
+        MOTION_LOG(
+            ALR, TYPE_EVENTS, NO_ERRNO,
+            _("Failed to accept for socket server at path %s: %s"),
+            cnt->conf.socket_path,
+            err);
+        return;
+    }
+
+    cnt->socket_fd = fd;
 }
 
 /**

@@ -32,6 +32,7 @@ struct config {
     int             camera_id;
     const char      *camera_dir;
     const char      *target_dir;
+    const char      *socket_path;
 
     /* Capture device configuration parameters */
     const char      *video_device;

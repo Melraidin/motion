@@ -509,6 +509,8 @@ struct context {
     unsigned int passflag;  //only purpose is to flag first frame vs all others.....
     int rolling_frame;
 
+    int socket_fd;
+
     struct MHD_Daemon   *webcontrol_daemon;
     struct MHD_Daemon   *webstream_daemon;
     char                webcontrol_digest_rand[8];
@@ -543,5 +545,7 @@ int create_path(const char *);
 void util_threadname_set(const char *abbr, int threadnbr, const char *threadname);
 void util_threadname_get(char *threadname);
 int util_check_passthrough(struct context *cnt);
+
+void start_socket_server(struct context *cnt);
 
 #endif /* _INCLUDE_MOTION_H */
