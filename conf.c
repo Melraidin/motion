@@ -47,6 +47,7 @@ struct config conf_template = {
     .camera_id =                       0,
     .camera_dir =                      NULL,
     .target_dir =                      NULL,
+		.socket_path =                     NULL,
 
     /* Capture device configuration parameters */
     .video_device =                    DEF_VIDEO_DEVICE,
@@ -330,6 +331,15 @@ config_param config_params[] = {
     "# Target directory for pictures, snapshots and movies",
     0,
     CONF_OFFSET(target_dir),
+    copy_string,
+    print_string,
+    WEBUI_LEVEL_LIMITED
+    },
+    {
+    "socket_path",
+    "# Socket path for motion events",
+    0,
+    CONF_OFFSET(socket_path),
     copy_string,
     print_string,
     WEBUI_LEVEL_LIMITED

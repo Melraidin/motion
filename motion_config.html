@@ -1046,6 +1046,12 @@
           <td align="left"><a href="#target_dir" >target_dir</a></td>
         </tr>
         <tr>
+          <td height="17" align="left"><br /></td>
+          <td align="left"><br /></td>
+          <td align="left"><br /></td>
+          <td align="left"><a href="#socket_path" >socket_path</a></td>
+        </tr>
+        <tr>
           <td height="17" align="left">text_changes</td>
           <td align="left">text_changes</td>
           <td align="left">text_changes</td>
@@ -1407,6 +1413,7 @@
               <td bgcolor="#edf4f9" ><a href="#camera_dir" >camera_dir</a> </td>
             </tr>
               <td bgcolor="#edf4f9" ><a href="#target_dir" >target_dir</a> </td>
+              <td bgcolor="#edf4f9" ><a href="#socket_path" >socket_path</a> </td>
             <tr>
             </tr>
           </tbody>
@@ -2214,6 +2221,31 @@
         Note that the file name options are all saved relative to this target_dir
         This means in principle that you can specify target_dir as '/' and be 100% flexible. But this is
         NOT recommended.  It is recommended that this directory be specified as deep as possible.
+        <p></p>
+
+        <h3><a name="socket_path"></a> socket_path </h3>
+        <p></p>
+        <ul>
+          <li> Type: String</li>
+          <li> Range / Valid values: Max 4095 characters</li>
+          <li> Default: Not defined = socket not used</li>
+        </ul>
+        <p></p>
+        The full path for the Unix socket generating motion detection events.
+        The default turns off this socket.
+        <p></p>
+        The socket receives motion detection events containing the binary structure:
+        <code>
+        struct event {
+            int64_t timestampSeconds;
+            int32_t timestampNanos;
+            int32_t changedPixels;
+            int32_t centerX;
+            int32_t centerY;
+            int32_t width;
+            int32_t height;
+        };
+        </code>
         <p></p>
 
       </ul>

@@ -7,6 +7,8 @@
     This software is distributed under the GNU Public License Version 2
     see also the file 'COPYING'.
 */
+#include <errno.h>
+#include <string.h>
 #include "picture.h"   /* already includes motion.h */
 #include "translate.h"
 #include "netcam_rtsp.h"
@@ -41,6 +43,16 @@ const char *eventList[] = {
     "EVENT_CAMERA_FOUND",
     "EVENT_FFMPEG_PUT",
     "EVENT_LAST"
+};
+
+struct event {
+    int64_t timestampSeconds;
+    int32_t timestampNanos;
+    int32_t changedPixels;
+    int32_t centerX;
+    int32_t centerY;
+    int32_t width;
+    int32_t height;
 };
 
 /**
@@ -143,6 +155,31 @@ static void on_picture_save_command(struct context *cnt,
         exec_command(cnt, cnt->conf.on_movie_start, filename, filetype);
 }
 
+static void publish_motion_to_socket(struct context *cnt) {
+    char err[512] = "";
+
+    struct event e = {
+        cnt->current_image->timestamp_tv.tv_sec,
+        cnt->current_image->timestamp_tv.tv_usec * 1000,
+        cnt->current_image->diffs,
+        cnt->current_image->location.x,
+        cnt->current_image->location.y,
+        cnt->current_image->location.width,
+        cnt->current_image->location.height};
+
+    for (int i = 0; i < cnt->socket_client_count; i++) {
+        int bytes_sent = send(cnt->socket_clients[i], (void*)&e, sizeof(e), 0);
+        if (bytes_sent == -1) {
+            strerror_r(errno, err, 512);
+            MOTION_LOG(
+                       ALR, TYPE_EVENTS, NO_ERRNO,
+                       _("Failed to send motion event to socket at path %s: %s"),
+                       cnt->conf.socket_path,
+                       err);
+        }
+    }
+}
+
 static void on_motion_detected_command(struct context *cnt,
             motion_event type ATTRIBUTE_UNUSED,
             struct image_data *dummy1 ATTRIBUTE_UNUSED,
@@ -151,6 +188,9 @@ static void on_motion_detected_command(struct context *cnt,
 {
     if (cnt->conf.on_motion_detected)
         exec_command(cnt, cnt->conf.on_motion_detected, NULL, 0);
+
+    if (cnt->conf.socket_path)
+        publish_motion_to_socket(cnt);
 }
 
 #if defined(HAVE_MYSQL) || defined(HAVE_PGSQL) || defined(HAVE_SQLITE3)
