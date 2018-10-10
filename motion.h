@@ -509,7 +509,8 @@ struct context {
     unsigned int passflag;  //only purpose is to flag first frame vs all others.....
     int rolling_frame;
 
-    int socket_fd;
+    int socket_clients[10];
+    int socket_client_count;
 
     struct MHD_Daemon   *webcontrol_daemon;
     struct MHD_Daemon   *webstream_daemon;

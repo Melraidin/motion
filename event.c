@@ -167,14 +167,16 @@ static void publish_motion_to_socket(struct context *cnt) {
         cnt->current_image->location.width,
         cnt->current_image->location.height};
 
-    int bytes_sent = send(cnt->socket_fd, (void*)&e, sizeof(e), 0);
-    if (bytes_sent == -1) {
-        strerror_r(errno, err, 512);
-        MOTION_LOG(
-            ALR, TYPE_EVENTS, NO_ERRNO,
-            _("Failed to send motion event to socket at path %s: %s"),
-            cnt->conf.socket_path,
-            err);
+    for (int i = 0; i < cnt->socket_client_count; i++) {
+        int bytes_sent = send(cnt->socket_clients[i], (void*)&e, sizeof(e), 0);
+        if (bytes_sent == -1) {
+            strerror_r(errno, err, 512);
+            MOTION_LOG(
+                       ALR, TYPE_EVENTS, NO_ERRNO,
+                       _("Failed to send motion event to socket at path %s: %s"),
+                       cnt->conf.socket_path,
+                       err);
+        }
     }
 }
 
