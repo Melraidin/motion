@@ -3244,7 +3244,9 @@ void *accept_socket_connections(void *vargp) {
 
     char err[512] = "";
 
-    cnt->socket_client_count = 0;
+    for (int i = 0; i < MAX_SOCKET_CLIENTS; i++) {
+        cnt->socket_clients[i] = NULL;
+    }
 
     int fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd == -1) {
@@ -3310,7 +3312,7 @@ void *accept_socket_connections(void *vargp) {
             }
 
             cnt->socket_clients[i % MAX_SOCKET_CLIENTS] = client_fd;
-            cnt->socket_client_count++;
+						break;
         }
     }
 }

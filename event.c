@@ -166,7 +166,7 @@ static void publish_motion_to_socket(struct context *cnt) {
         cnt->current_image->location.width,
         cnt->current_image->location.height};
 
-    for (int i = 0; i < cnt->socket_client_count && i < MAX_SOCKET_CLIENTS; i++) {
+    for (int i = 0; i < MAX_SOCKET_CLIENTS; i++) {
         if (cnt->socket_clients[i] == NULL) {
             continue;
         }

@@ -512,7 +512,6 @@ struct context {
     int rolling_frame;
 
     int socket_clients[MAX_SOCKET_CLIENTS];
-    int socket_client_count;
 
     struct MHD_Daemon   *webcontrol_daemon;
     struct MHD_Daemon   *webstream_daemon;
