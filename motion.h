@@ -100,6 +100,8 @@ struct image_data;
 
 #define DEF_PALETTE             17
 
+#define MAX_SOCKET_CLIENTS      10
+
 /* Default picture settings */
 #define DEF_WIDTH              640
 #define DEF_HEIGHT             480
@@ -509,7 +511,7 @@ struct context {
     unsigned int passflag;  //only purpose is to flag first frame vs all others.....
     int rolling_frame;
 
-    int socket_clients[10];
+    int socket_clients[MAX_SOCKET_CLIENTS];
     int socket_client_count;
 
     struct MHD_Daemon   *webcontrol_daemon;

@@ -167,9 +167,15 @@ static void publish_motion_to_socket(struct context *cnt) {
         cnt->current_image->location.width,
         cnt->current_image->location.height};
 
-    for (int i = 0; i < cnt->socket_client_count; i++) {
+    for (int i = 0; i < cnt->socket_client_count && i < MAX_SOCKET_CLIENTS; i++) {
+        if (cnt->socket_clients[i] == NULL) {
+            continue;
+        }
+
         int bytes_sent = send(cnt->socket_clients[i], (void*)&e, sizeof(e), 0);
         if (bytes_sent == -1) {
+            cnt->socket_clients[i] = NULL;
+
             strerror_r(errno, err, 512);
             MOTION_LOG(
                        ALR, TYPE_EVENTS, NO_ERRNO,
