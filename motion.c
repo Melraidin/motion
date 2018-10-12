@@ -3250,9 +3250,9 @@ void *accept_socket_connections(void *vargp) {
     if (fd == -1) {
         strerror_r(errno, err, 512);
         MOTION_LOG(
-        ALR, TYPE_EVENTS, NO_ERRNO,
-        _("Failed to open socket server: %s"),
-        err);
+            ALR, TYPE_EVENTS, NO_ERRNO,
+            _("Failed to open socket server: %s"),
+            err);
         return NULL;
     }
 
@@ -3282,21 +3282,36 @@ void *accept_socket_connections(void *vargp) {
     }
 
     while (1) {
-      struct sockaddr_un client_address;
-      socklen_t client_address_length = sizeof(client_address);
+        struct sockaddr_un client_address;
+        socklen_t client_address_length = sizeof(client_address);
 
-      int client_fd = accept(fd, (struct sockaddr*)&client_address, &client_address_length);
-      if (client_fd < 0) {
-        strerror_r(errno, err, 512);
-        MOTION_LOG(
-                   ALR, TYPE_EVENTS, NO_ERRNO,
-                   _("Failed to accept for socket server at path %s: %s"),
-                   cnt->conf.socket_path,
-                   err);
-        return NULL;
-      }
+        int client_fd = accept(fd, (struct sockaddr*)&client_address, &client_address_length);
+        if (client_fd < 0) {
+            strerror_r(errno, err, 512);
+            MOTION_LOG(
+                ALR, TYPE_EVENTS, NO_ERRNO,
+                _("Failed to accept for socket server at path %s: %s"),
+                cnt->conf.socket_path,
+                err);
+            continue;
+        }
 
-      cnt->socket_clients[cnt->socket_client_count++] = client_fd;
+        for (int i = 0; i <= MAX_SOCKET_CLIENTS; i++) {
+            if (i == MAX_SOCKET_CLIENTS) {
+                MOTION_LOG(
+                    ALR, TYPE_EVENTS, NO_ERRNO,
+                    _("Cannot accept new socket connection, already at max %d connections."),
+                    MAX_SOCKET_CLIENTS);
+                break;
+            }
+
+            if (cnt->socket_clients[i % MAX_SOCKET_CLIENTS] != NULL) {
+                continue;
+            }
+
+            cnt->socket_clients[i % MAX_SOCKET_CLIENTS] = client_fd;
+            cnt->socket_client_count++;
+        }
     }
 }
 
