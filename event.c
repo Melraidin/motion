@@ -167,13 +167,13 @@ static void publish_motion_to_socket(struct context *cnt) {
         cnt->current_image->location.height};
 
     for (int i = 0; i < MAX_SOCKET_CLIENTS; i++) {
-        if (cnt->socket_clients[i] == NULL) {
+        if (cnt->socket_clients[i] == -1) {
             continue;
         }
 
         int bytes_sent = send(cnt->socket_clients[i], (void*)&e, sizeof(e), 0);
         if (bytes_sent == -1) {
-            cnt->socket_clients[i] = NULL;
+            cnt->socket_clients[i] = -1;
 
             strerror_r(errno, err, 512);
             MOTION_LOG(
