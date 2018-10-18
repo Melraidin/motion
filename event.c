@@ -45,7 +45,8 @@ const char *eventList[] = {
     "EVENT_LAST"
 };
 
-struct event {
+typedef struct SocketEvent {
+    char cameraName[128];
     int64_t timestampSeconds;
     int32_t timestampNanos;
     int32_t changedPixels;
@@ -53,7 +54,7 @@ struct event {
     int32_t centerY;
     int32_t width;
     int32_t height;
-};
+} SocketEvent;
 
 /**
  * eventToString
@@ -157,14 +158,20 @@ static void on_picture_save_command(struct context *cnt,
 static void publish_motion_to_socket(struct context *cnt) {
     char err[512] = "";
 
-    struct event e = {
-        cnt->current_image->timestamp_tv.tv_sec,
-        cnt->current_image->timestamp_tv.tv_usec * 1000,
-        cnt->current_image->diffs,
-        cnt->current_image->location.x,
-        cnt->current_image->location.y,
-        cnt->current_image->location.width,
-        cnt->current_image->location.height};
+    SocketEvent e = {
+        .timestampSeconds = cnt->current_image->timestamp_tv.tv_sec,
+        .timestampNanos = cnt->current_image->timestamp_tv.tv_usec * 1000,
+        .changedPixels = cnt->current_image->diffs,
+        .centerX = cnt->current_image->location.x,
+        .centerY = cnt->current_image->location.y,
+        .width = cnt->current_image->location.width,
+        .height = cnt->current_image->location.height};
+
+    if (cnt->conf.camera_name && cnt->conf.camera_name[0]) {
+        snprintf(e.cameraName, 128, "%s", cnt->conf.camera_name);
+    } else {
+        strcpy(e.cameraName, "unnamed camera");
+    }
 
     for (int i = 0; i < MAX_SOCKET_CLIENTS; i++) {
         if (cnt->socket_clients[i] == -1) {
