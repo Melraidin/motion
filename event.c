@@ -45,8 +45,10 @@ const char *eventList[] = {
     "EVENT_LAST"
 };
 
+#define MAX_CAMERA_NAME_LENGTH 128
+
 typedef struct SocketEvent {
-    char cameraName[128];
+    char cameraName[MAX_CAMERA_NAME_LENGTH];
     int64_t timestampSeconds;
     int32_t timestampNanos;
     int32_t changedPixels;
@@ -168,9 +170,9 @@ static void publish_motion_to_socket(struct context *cnt) {
         .height = cnt->current_image->location.height};
 
     if (cnt->conf.camera_name && cnt->conf.camera_name[0]) {
-        snprintf(e.cameraName, 128, "%s", cnt->conf.camera_name);
+        snprintf(e.cameraName, MAX_CAMERA_NAME_LENGTH, "%s", cnt->conf.camera_name);
     } else {
-        strcpy(e.cameraName, "unnamed camera");
+        strcpy(e.cameraName, "mystery camera");
     }
 
     for (int i = 0; i < MAX_SOCKET_CLIENTS; i++) {
